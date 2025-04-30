@@ -18,6 +18,14 @@ jobs:
         run: docker login -u ${{ secrets.FRANSYS_REGISTRY_MAIN_USERNAME }} -p ${{ secrets.FRANSYS_REGISTRY_MAIN_PASSWORD }} ${{ secrets.FRANSYS_REGISTRY_DOMAIN }}
       - name: Prepare the directory
         run: cp -r /build build
+      - name: Prepare variables
+        id: prepare-vars
+        run: |
+          if [[ -z "${{ vars.DOCKERFILE_PATH }}" ]]; then
+            echo "DOCKERFILE_PATH=Dockerfile" >> $GITHUB_OUTPUT
+          else
+            echo "DOCKERFILE_PATH=${{ vars.DOCKERFILE_PATH }}" >> $GITHUB_OUTPUT
+          fi
       - name: Build the Docker image
         run: docker buildx build --cache-from "$FRANSYS_REGISTRY:${{ github.sha }}" --cache-from "$FRANSYS_REGISTRY:${{ github.ref_name }}" -f ${{ steps.prepare-vars.outputs.DOCKERFILE_PATH }} --tag "$FRANSYS_REGISTRY:${{ github.sha }}" --progress=plain . 2>&1
       - name: Push the image
